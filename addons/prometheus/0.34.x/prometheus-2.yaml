@@ -56,6 +56,17 @@ spec:
         # see: https://github.com/mesosphere/kubeaddons-extrasteps/tree/master/pkg/prometheus/prometheus.go
         enableAdditionalPrometheusRBACRules: true
       prometheus:
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: traefik
+            traefik.frontend.rule.type: PathPrefixStrip
+            traefik.ingress.kubernetes.io/auth-response-headers: X-Forwarded-User,Authorization,Impersonate-User,Impersonate-Group
+            traefik.ingress.kubernetes.io/auth-type: forward
+            traefik.ingress.kubernetes.io/auth-url: http://traefik-forward-auth-kubeaddons.kubeaddons.svc.cluster.local:4181/
+            traefik.ingress.kubernetes.io/priority: "2"
+          paths:
+            - /ops/portal/prometheus
         service:
           additionalPorts:
             # Service port for Thanos gRPC.
@@ -119,14 +130,14 @@ spec:
               image: mesosphere/kubeaddons-addon-initializer:v0.1.5
               command: ["/bin/bash", "-c", "addon-initializer prometheus && sleep infinity"]
               env:
-              - name: "PROMETHEUS_NAMESPACE"
-                value: "kubeaddons"
-              - name: "CLUSTER_ID_CONFIGMAP_NAME"
-                value: "cluster-info-configmap"
+                - name: "PROMETHEUS_NAMESPACE"
+                  value: "kubeaddons"
+                - name: "CLUSTER_ID_CONFIGMAP_NAME"
+                  value: "cluster-info-configmap"
             - name: prometheus-config-reloader
               envFrom:
-              - configMapRef:
-                  name: cluster-info-configmap
+                - configMapRef:
+                    name: cluster-info-configmap
           additionalScrapeConfigs:
             - job_name: 'kubernetes-nodes-containerd'
               metrics_path: /v1/metrics
@@ -164,29 +175,29 @@ spec:
                 - role: pod
                   namespaces:
                     names:
-                    - kube-system
+                      - kube-system
               relabel_configs:
-              - source_labels: [__meta_kubernetes_pod_label_k8s_app]
-                regex: calico-node
-                action: keep
-              - source_labels: [__meta_kubernetes_pod_container_port_name]
-                regex: .*metrics
-                action: keep
-              - source_labels: [__meta_kubernetes_pod_label_k8s_app]
-                target_label: name
-                action: replace
-              - source_labels: [__meta_kubernetes_pod_container_port_name]
-                target_label: endpoint
-                action: replace
-              - source_labels: [__meta_kubernetes_pod_node_name]
-                target_label: node
-                action: replace
-              - source_labels: [__meta_kubernetes_pod_name]
-                target_label: pod
-                action: replace
-              - source_labels: [__meta_kubernetes_namespace]
-                target_label: namespace
-                action: replace
+                - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+                  regex: calico-node
+                  action: keep
+                - source_labels: [__meta_kubernetes_pod_container_port_name]
+                  regex: .*metrics
+                  action: keep
+                - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+                  target_label: name
+                  action: replace
+                - source_labels: [__meta_kubernetes_pod_container_port_name]
+                  target_label: endpoint
+                  action: replace
+                - source_labels: [__meta_kubernetes_pod_node_name]
+                  target_label: node
+                  action: replace
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: pod
+                  action: replace
+                - source_labels: [__meta_kubernetes_namespace]
+                  target_label: namespace
+                  action: replace
             - job_name: 'kubernetes-keepalived'
               metrics_path: /snmp
               params:
@@ -199,26 +210,26 @@ spec:
                 - role: pod
                   namespaces:
                     names:
-                    - kube-system
+                      - kube-system
               relabel_configs:
-              - source_labels: [__meta_kubernetes_pod_container_port_protocol]
-                regex: TCP
-                action: keep
-              - source_labels: [__meta_kubernetes_pod_container_port_number]
-                regex: "6161"
-                action: keep
-              - source_labels: [__meta_kubernetes_pod_container_port_name]
-                target_label: endpoint
-                action: replace
-              - source_labels: [__meta_kubernetes_pod_node_name]
-                target_label: node
-                action: replace
-              - source_labels: [__meta_kubernetes_pod_name]
-                target_label: pod
-                action: replace
-              - source_labels: [__meta_kubernetes_namespace]
-                target_label: namespace
-                action: replace
+                - source_labels: [__meta_kubernetes_pod_container_port_protocol]
+                  regex: TCP
+                  action: keep
+                - source_labels: [__meta_kubernetes_pod_container_port_number]
+                  regex: "6161"
+                  action: keep
+                - source_labels: [__meta_kubernetes_pod_container_port_name]
+                  target_label: endpoint
+                  action: replace
+                - source_labels: [__meta_kubernetes_pod_node_name]
+                  target_label: node
+                  action: replace
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: pod
+                  action: replace
+                - source_labels: [__meta_kubernetes_namespace]
+                  target_label: namespace
+                  action: replace
           enableAdminAPI: true
           secrets:
             - etcd-certs
@@ -241,6 +252,17 @@ spec:
               cpu: 300m
               memory: 1500Mi
       alertmanager:
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: traefik
+            traefik.frontend.rule.type: PathPrefixStrip
+            traefik.ingress.kubernetes.io/auth-response-headers: X-Forwarded-User,Authorization,Impersonate-User,Impersonate-Group
+            traefik.ingress.kubernetes.io/auth-type: forward
+            traefik.ingress.kubernetes.io/auth-url: http://traefik-forward-auth-kubeaddons.kubeaddons.svc.cluster.local:4181/
+            traefik.ingress.kubernetes.io/priority: "2"
+          paths:
+            - /ops/portal/alertmanager
         alertmanagerSpec:
           resources:
             limits:
@@ -250,6 +272,17 @@ spec:
               cpu: 10m
               memory: 50Mi
       grafana:
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: traefik
+            traefik.frontend.rule.type: PathPrefixStrip
+            traefik.ingress.kubernetes.io/auth-response-headers: X-Forwarded-User,Authorization,Impersonate-User,Impersonate-Group
+            traefik.ingress.kubernetes.io/auth-type: forward
+            traefik.ingress.kubernetes.io/auth-url: http://traefik-forward-auth-kubeaddons.kubeaddons.svc.cluster.local:4181/
+            traefik.ingress.kubernetes.io/priority: "2"
+          hosts: [""]
+          path: /ops/portal/grafana
         grafana.ini:
           server:
             protocol: http
@@ -301,8 +334,8 @@ spec:
             image: mesosphere/grafana-plugins:v0.0.1
             command: ["/bin/sh", "-c", "cp -a /var/lib/grafana/plugins/. /var/lib/grafana/shared-plugins/"]
             volumeMounts:
-            - name: plugins
-              mountPath: /var/lib/grafana/shared-plugins/
+              - name: plugins
+                mountPath: /var/lib/grafana/shared-plugins/
       kubeEtcd:
         enabled: true
         serviceMonitor:
